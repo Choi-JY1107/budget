@@ -19,7 +19,7 @@ struct ContentView: View {
             ScrollView {
                 TagSummaryView(store: store, theme: theme, year: year, month: month)
             }
-            .frame(width: 310)
+            .frame(width: 288)
 
             // 가운데: 달력
             CalendarView(store: store, theme: theme, viewDate: $viewDate, selectedKey: $selectedKey)
@@ -35,9 +35,11 @@ struct ContentView: View {
                     }
                 }
             }
-            .frame(width: 330)
+            .frame(width: 308)
         }
-        .padding(20)
+        // 타이틀바를 숨겼으므로 상단에 신호등 버튼 공간을 비워둔다
+        .padding(.top, 38)
+        .padding([.horizontal, .bottom], 20)
         .background(theme.page)
     }
 

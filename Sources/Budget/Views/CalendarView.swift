@@ -77,7 +77,7 @@ struct CalendarView: View {
             ForEach(gridCells(), id: \.self) { cell in
                 if cell <= 0 {
                     // 달 시작 전 빈 칸
-                    Color.clear.frame(height: 88)
+                    Color.clear.frame(height: 78)
                 } else {
                     let date = cal.date(from: DateComponents(year: viewYear, month: viewMonth, day: cell))!
                     DayCellView(store: store, theme: theme, date: date, selectedKey: $selectedKey)

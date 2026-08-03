@@ -54,6 +54,15 @@ final class BudgetStore {
         if let i = records.firstIndex(where: { $0.id == r.id }) { records[i] = r; saveRecords() }
     }
 
+    /// 선택한 기록들의 이름(내용)을 한 번에 바꾼다
+    func bulkRename(ids: Set<UUID>, desc: String) {
+        guard !ids.isEmpty else { return }
+        for i in records.indices where ids.contains(records[i].id) {
+            records[i].desc = desc
+        }
+        saveRecords()
+    }
+
     // MARK: 월 단위 집계
 
     func monthTotal(year: Int, month: Int) -> Int {

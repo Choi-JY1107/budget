@@ -8,9 +8,10 @@ struct BudgetApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .frame(minWidth: 1280, minHeight: 700)
+                .frame(minWidth: 1280, minHeight: 800)
                 .preferredColorScheme(schemeFor(appearance))
         }
         .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 1280, height: 800)   // 최소 크기와 동일
     }
 }

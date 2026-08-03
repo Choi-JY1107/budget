@@ -48,7 +48,7 @@ struct DayCellView: View {
                 }
             }
             .padding(8)
-            .frame(maxWidth: .infinity, minHeight: 88, alignment: .topLeading)
+            .frame(maxWidth: .infinity, minHeight: 78, alignment: .topLeading)
             .background(theme.card)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
