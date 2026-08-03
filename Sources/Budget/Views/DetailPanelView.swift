@@ -12,6 +12,10 @@ struct DetailPanelView: View {
     @State private var selectedSub = TAG_GROUPS[0].items[0]
     @State private var editingID: UUID? = nil   // nil이면 추가, 값이 있으면 수정 모드
     @State private var selectedBrand: String? = nil
+    @State private var formDate = Date()        // 기록할 날짜 (수정 시 변경 가능)
+
+    /// 현재 선택된 날짜 (폼 기본값)
+    private var selectedDate: Date { dateFromKey(selectedKey) ?? Date() }
 
     private var cal: Calendar { Calendar.current }
 
@@ -42,6 +46,7 @@ struct DetailPanelView: View {
         .background(theme.card)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: theme.shadow, radius: 12, y: 2)
+        .onAppear { formDate = selectedDate }
         .onChange(of: selectedKey) { _, _ in cancelEdit() }
     }
 
@@ -94,6 +99,22 @@ struct DetailPanelView: View {
 
     private var addForm: some View {
         VStack(alignment: .leading, spacing: 10) {
+            field("날짜") {
+                HStack(spacing: 6) {
+                    DatePicker("", selection: $formDate, displayedComponents: .date)
+                        .labelsHidden()
+                        .datePickerStyle(.field)
+                        .font(.system(size: 12))
+                    if dateKey(formDate) != selectedKey {
+                        Text("이동")
+                            .font(.system(size: 9, weight: .bold)).foregroundColor(.white)
+                            .padding(.horizontal, 5).padding(.vertical, 2)
+                            .background(theme.warning)
+                            .clipShape(RoundedRectangle(cornerRadius: 5))
+                            .help("저장하면 이 기록이 \(shortDate(dateKey(formDate)))로 옮겨집니다")
+                    }
+                }
+            }
             field("금액 (만원)") {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
@@ -172,7 +193,7 @@ struct DetailPanelView: View {
 
     private func addRecord() {
         guard let amt = parseManInput(amount), amt > 0 else { return }
-        store.add(Record(dateKey: selectedKey, amount: amt,
+        store.add(Record(dateKey: dateKey(formDate), amount: amt,
                          desc: desc.trimmingCharacters(in: .whitespaces),
                          tag: selectedTag, sub: selectedSub, brand: brandToSave))
         clearForm()
@@ -185,11 +206,12 @@ struct DetailPanelView: View {
         amount = manString(r.amount)
         desc = r.desc
         selectedBrand = r.brand
+        formDate = dateFromKey(r.dateKey) ?? selectedDate
     }
 
     private func saveEdit() {
         guard let id = editingID, let amt = parseManInput(amount), amt > 0 else { return }
-        store.update(Record(id: id, dateKey: selectedKey, amount: amt,
+        store.update(Record(id: id, dateKey: dateKey(formDate), amount: amt,
                             desc: desc.trimmingCharacters(in: .whitespaces),
                             tag: selectedTag, sub: selectedSub, brand: brandToSave))
         clearForm()
@@ -207,5 +229,6 @@ struct DetailPanelView: View {
 
     private func clearForm() {
         editingID = nil; amount = ""; desc = ""; selectedBrand = nil
+        formDate = selectedDate
     }
 }

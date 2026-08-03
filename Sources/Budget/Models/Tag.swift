@@ -18,8 +18,8 @@ let TAG_GROUPS: [TagGroup] = [
              items: ["적금", "대출이자", "주택청약", "증권계좌"]),
     TagGroup(name: "생활비", color: Color(red: 0.30, green: 0.44, blue: 1.0),
              items: ["식비", "커피", "생활비", "유흥", "약속"]),
-    TagGroup(name: "출처 모름", color: Color(red: 0.55, green: 0.57, blue: 0.64),
-             items: ["미분류"]),
+    TagGroup(name: "기타", color: Color(red: 0.55, green: 0.57, blue: 0.64),
+             items: ["출처 모름", "멍청 비용"]),
 ]
 
 /// 태그 이름으로 대표 색상 조회

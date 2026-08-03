@@ -11,6 +11,13 @@ func monthKey(_ year: Int, _ month: Int) -> String {
     String(format: "%04d-%02d", year, month)
 }
 
+/// "yyyy-MM-dd" → Date
+func dateFromKey(_ key: String) -> Date? {
+    let p = key.split(separator: "-").compactMap { Int($0) }
+    guard p.count == 3 else { return nil }
+    return Calendar.current.date(from: DateComponents(year: p[0], month: p[1], day: p[2]))
+}
+
 /// "yyyy-MM-dd" → "M/d" (예: "2026-07-02" → "7/2")
 func shortDate(_ key: String) -> String {
     let p = key.split(separator: "-").compactMap { Int($0) }
