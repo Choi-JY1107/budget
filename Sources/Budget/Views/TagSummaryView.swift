@@ -340,26 +340,33 @@ struct SubBudgetRow: View {
         }
     }
 
-    /// 커피 항목일 때: 브랜드별 아이콘 + 사용액 요약
+    /// 커피 항목일 때: 지출이 있는 브랜드만 금액순으로 아이콘 + 사용액 표시
     @ViewBuilder
     private var brandBreakdown: some View {
         let totals = Dictionary(grouping: items.filter { $0.brand != nil }, by: { $0.brand! })
             .mapValues { $0.reduce(0) { $0 + $1.amount } }
-        let cols = Array(repeating: GridItem(.flexible(), spacing: 4), count: 4)
-        LazyVGrid(columns: cols, spacing: 5) {
-            ForEach(COFFEE_BRANDS) { b in
-                let amt = totals[b.id] ?? 0
-                HStack(spacing: 3) {
-                    BrandIcon(brand: b, size: 15).opacity(amt > 0 ? 1 : 0.3)
-                    Text(amt > 0 ? shortWon(amt) : "-")
-                        .font(.system(size: 9, weight: amt > 0 ? .bold : .regular))
-                        .foregroundColor(amt > 0 ? .primary : .secondary)
-                        .lineLimit(1).minimumScaleFactor(0.7)
-                }
-                .help(b.name)
+        let used = COFFEE_BRANDS
+            .compactMap { b -> (CoffeeBrand, Int)? in
+                guard let amt = totals[b.id], amt > 0 else { return nil }
+                return (b, amt)
             }
+            .sorted { $0.1 > $1.1 }
+
+        if !used.isEmpty {
+            let cols = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
+            LazyVGrid(columns: cols, spacing: 5) {
+                ForEach(used, id: \.0.id) { pair in
+                    HStack(spacing: 3) {
+                        BrandIcon(brand: pair.0, size: 15)
+                        Text(shortWon(pair.1))
+                            .font(.system(size: 9, weight: .bold))
+                            .lineLimit(1).minimumScaleFactor(0.7)
+                    }
+                    .help(pair.0.name)
+                }
+            }
+            .padding(.bottom, 3)
         }
-        .padding(.bottom, 3)
     }
 
     private func commit() {

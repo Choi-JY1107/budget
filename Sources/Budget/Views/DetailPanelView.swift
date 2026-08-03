@@ -67,8 +67,8 @@ struct DetailPanelView: View {
         } else {
             VStack(spacing: 0) {
                 ForEach(recs) { r in
-                    HStack(alignment: .top, spacing: 10) {
-                        RoundedRectangle(cornerRadius: 4).fill(colorFor(tag: r.tag)).frame(width: 4)
+                    HStack(alignment: .center, spacing: 10) {
+                        RoundedRectangle(cornerRadius: 4).fill(colorFor(tag: r.tag)).frame(width: 4, height: 30)
                         if let b = brandFor(r.brand) { BrandIcon(brand: b, size: 18) }
                         VStack(alignment: .leading, spacing: 2) {
                             Text(r.desc.isEmpty ? "(내용 없음)" : r.desc)
@@ -79,17 +79,16 @@ struct DetailPanelView: View {
                         }
                         Spacer()
                         Text(shortWon(r.amount)).font(.system(size: 14, weight: .bold))
-                        Button { startEdit(r) } label: {
-                            Image(systemName: "pencil").font(.system(size: 11))
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundColor(editingID == r.id ? theme.accent : .secondary)
-                        Button { deleteRecord(r) } label: {
-                            Image(systemName: "xmark").font(.system(size: 11))
-                        }
-                        .buttonStyle(.plain).foregroundColor(.secondary)
+                        IconHoverButton(systemName: "pencil",
+                                        isActive: editingID == r.id,
+                                        activeColor: theme.accent,
+                                        hoverColor: theme.accent) { startEdit(r) }
+                            .help("수정")
+                        IconHoverButton(systemName: "xmark",
+                                        hoverColor: theme.warning) { deleteRecord(r) }
+                            .help("삭제")
                     }
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 6)
                     .padding(.horizontal, 6)
                     .background(editingID == r.id ? theme.accent.opacity(0.08) : .clear)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -105,10 +104,7 @@ struct DetailPanelView: View {
         VStack(alignment: .leading, spacing: 10) {
             field("날짜") {
                 HStack(spacing: 6) {
-                    DatePicker("", selection: $formDate, displayedComponents: .date)
-                        .labelsHidden()
-                        .datePickerStyle(.field)
-                        .font(.system(size: 12))
+                    DateFieldPopover(date: $formDate, theme: theme)
                     if dateKey(formDate) != selectedKey {
                         Text("이동")
                             .font(.system(size: 9, weight: .bold)).foregroundColor(.white)
