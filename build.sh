@@ -28,6 +28,11 @@ if [ -f "Resources/AppIcon.icns" ]; then
   cp "Resources/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 fi
 
+# 커피 브랜드 로고 복사 (있으면)
+if [ -d "Resources/BrandLogos" ]; then
+  cp -R "Resources/BrandLogos" "$APP/Contents/Resources/BrandLogos"
+fi
+
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

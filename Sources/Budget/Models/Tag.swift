@@ -17,7 +17,7 @@ let TAG_GROUPS: [TagGroup] = [
     TagGroup(name: "저축", color: Color(red: 0.21, green: 0.79, blue: 0.55),
              items: ["적금", "대출이자", "주택청약", "증권계좌"]),
     TagGroup(name: "생활비", color: Color(red: 0.30, green: 0.44, blue: 1.0),
-             items: ["식비", "생활비", "유흥", "약속"]),
+             items: ["식비", "커피", "생활비", "유흥", "약속"]),
     TagGroup(name: "출처 모름", color: Color(red: 0.55, green: 0.57, blue: 0.64),
              items: ["미분류"]),
 ]

@@ -8,7 +8,7 @@ struct BudgetApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .frame(minWidth: 1000, minHeight: 660)
+                .frame(minWidth: 1280, minHeight: 700)
                 .preferredColorScheme(schemeFor(appearance))
         }
         .windowStyle(.hiddenTitleBar)

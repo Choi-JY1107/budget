@@ -77,6 +77,20 @@ final class BudgetStore {
             .reduce(0) { $0 + $1.amount }
     }
 
+    // MARK: 검색
+
+    /// 키워드로 기록 검색 (내용·태그·세부 항목·브랜드명·날짜 문자열 대상, 최신순)
+    func search(_ query: String) -> [Record] {
+        let q = query.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !q.isEmpty else { return [] }
+        return records.filter { r in
+            let brandName = brandFor(r.brand)?.name ?? ""
+            return [r.desc, r.tag, r.sub, brandName, r.dateKey]
+                .contains { $0.lowercased().contains(q) }
+        }
+        .sorted { $0.dateKey > $1.dateKey }
+    }
+
     /// 해당 월, 특정 세부 항목의 개별 내역 (날짜순)
     func records(year: Int, month: Int, tag: String, sub: String) -> [Record] {
         let p = monthKey(year, month)

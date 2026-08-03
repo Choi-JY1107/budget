@@ -14,12 +14,20 @@ struct ContentView: View {
     private var month: Int { cal.component(.month, from: viewDate) }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 24) {
+        HStack(alignment: .top, spacing: 20) {
+            // 왼쪽: 태그별 현황
+            ScrollView {
+                TagSummaryView(store: store, theme: theme, year: year, month: month)
+            }
+            .frame(width: 310)
+
+            // 가운데: 달력
             CalendarView(store: store, theme: theme, viewDate: $viewDate, selectedKey: $selectedKey)
 
+            // 오른쪽: 검색 + 선택 날짜 상세
             ScrollView {
                 VStack(spacing: 20) {
-                    TagSummaryView(store: store, theme: theme, year: year, month: month)
+                    SearchView(store: store, theme: theme, selectedKey: $selectedKey)
                     if let key = selectedKey {
                         DetailPanelView(store: store, theme: theme, selectedKey: key)
                     } else {
@@ -27,9 +35,9 @@ struct ContentView: View {
                     }
                 }
             }
-            .frame(width: 340)
+            .frame(width: 330)
         }
-        .padding(24)
+        .padding(20)
         .background(theme.page)
     }
 

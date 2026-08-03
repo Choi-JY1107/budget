@@ -11,6 +11,7 @@ struct DetailPanelView: View {
     @State private var selectedTag = TAG_GROUPS[0].name
     @State private var selectedSub = TAG_GROUPS[0].items[0]
     @State private var editingID: UUID? = nil   // nil이면 추가, 값이 있으면 수정 모드
+    @State private var selectedBrand: String? = nil
 
     private var cal: Calendar { Calendar.current }
 
@@ -59,10 +60,13 @@ struct DetailPanelView: View {
                 ForEach(recs) { r in
                     HStack(alignment: .top, spacing: 10) {
                         RoundedRectangle(cornerRadius: 4).fill(colorFor(tag: r.tag)).frame(width: 4)
+                        if let b = brandFor(r.brand) { BrandIcon(brand: b, size: 18) }
                         VStack(alignment: .leading, spacing: 2) {
                             Text(r.desc.isEmpty ? "(내용 없음)" : r.desc)
                                 .font(.system(size: 13, weight: .semibold))
-                            Text("\(r.tag) · \(r.sub)").font(.system(size: 11)).foregroundColor(.secondary)
+                            Text(brandFor(r.brand).map { "\(r.tag) · \(r.sub) · \($0.name)" }
+                                 ?? "\(r.tag) · \(r.sub)")
+                                .font(.system(size: 11)).foregroundColor(.secondary)
                         }
                         Spacer()
                         Text(shortWon(r.amount)).font(.system(size: 14, weight: .bold))
@@ -123,7 +127,13 @@ struct DetailPanelView: View {
                         ForEach(subItems, id: \.self) { Text($0).tag($0) }
                     }
                     .labelsHidden()
+                    .onChange(of: selectedSub) { _, new in
+                        if new != BRAND_SUB { selectedBrand = nil }
+                    }
                 }
+            }
+            if selectedSub == BRAND_SUB {
+                BrandPicker(theme: theme, selected: $selectedBrand)
             }
             HStack(spacing: 8) {
                 if editingID != nil {
@@ -164,7 +174,7 @@ struct DetailPanelView: View {
         guard let amt = parseManInput(amount), amt > 0 else { return }
         store.add(Record(dateKey: selectedKey, amount: amt,
                          desc: desc.trimmingCharacters(in: .whitespaces),
-                         tag: selectedTag, sub: selectedSub))
+                         tag: selectedTag, sub: selectedSub, brand: brandToSave))
         clearForm()
     }
 
@@ -174,15 +184,19 @@ struct DetailPanelView: View {
         selectedSub = r.sub
         amount = manString(r.amount)
         desc = r.desc
+        selectedBrand = r.brand
     }
 
     private func saveEdit() {
         guard let id = editingID, let amt = parseManInput(amount), amt > 0 else { return }
         store.update(Record(id: id, dateKey: selectedKey, amount: amt,
                             desc: desc.trimmingCharacters(in: .whitespaces),
-                            tag: selectedTag, sub: selectedSub))
+                            tag: selectedTag, sub: selectedSub, brand: brandToSave))
         clearForm()
     }
+
+    /// 세부 항목이 "커피"일 때만 브랜드를 저장한다
+    private var brandToSave: String? { selectedSub == BRAND_SUB ? selectedBrand : nil }
 
     private func deleteRecord(_ r: Record) {
         if editingID == r.id { clearForm() }
@@ -192,6 +206,6 @@ struct DetailPanelView: View {
     private func cancelEdit() { clearForm() }
 
     private func clearForm() {
-        editingID = nil; amount = ""; desc = ""
+        editingID = nil; amount = ""; desc = ""; selectedBrand = nil
     }
 }

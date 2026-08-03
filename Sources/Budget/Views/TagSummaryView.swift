@@ -149,6 +149,7 @@ struct SubBudgetRow: View {
             }
             if expanded {
                 VStack(spacing: 3) {
+                    if sub == BRAND_SUB { brandBreakdown }
                     if items.isEmpty {
                         HStack {
                             Text("아직 지출 없음").font(.system(size: 11)).foregroundColor(.secondary)
@@ -160,6 +161,7 @@ struct SubBudgetRow: View {
                                 Text(shortDate(r.dateKey))
                                     .font(.system(size: 10)).foregroundColor(.secondary)
                                     .frame(width: 28, alignment: .leading)
+                                if let b = brandFor(r.brand) { BrandIcon(brand: b, size: 14) }
                                 Text(r.desc.isEmpty ? "(내용 없음)" : r.desc)
                                     .font(.system(size: 11)).lineLimit(1)
                                 Spacer(minLength: 4)
@@ -173,6 +175,28 @@ struct SubBudgetRow: View {
             }
         }
         .onAppear { targetText = manString(target) }
+    }
+
+    /// 커피 항목일 때: 브랜드별 아이콘 + 사용액 요약
+    @ViewBuilder
+    private var brandBreakdown: some View {
+        let totals = Dictionary(grouping: items.filter { $0.brand != nil }, by: { $0.brand! })
+            .mapValues { $0.reduce(0) { $0 + $1.amount } }
+        let cols = Array(repeating: GridItem(.flexible(), spacing: 4), count: 4)
+        LazyVGrid(columns: cols, spacing: 5) {
+            ForEach(COFFEE_BRANDS) { b in
+                let amt = totals[b.id] ?? 0
+                HStack(spacing: 3) {
+                    BrandIcon(brand: b, size: 15).opacity(amt > 0 ? 1 : 0.3)
+                    Text(amt > 0 ? shortWon(amt) : "-")
+                        .font(.system(size: 9, weight: amt > 0 ? .bold : .regular))
+                        .foregroundColor(amt > 0 ? .primary : .secondary)
+                        .lineLimit(1).minimumScaleFactor(0.7)
+                }
+                .help(b.name)
+            }
+        }
+        .padding(.bottom, 3)
     }
 
     private func commit() {
