@@ -14,6 +14,10 @@ struct DetailPanelView: View {
     @State private var selectedBrand: String? = nil
     @State private var formDate = Date()        // 기록할 날짜 (수정 시 변경 가능)
 
+    /// Tab 키가 왼쪽 패널로 새어나가지 않도록 폼 안에서만 순환시킨다
+    private enum FormField { case amount, desc }
+    @FocusState private var focus: FormField?
+
     /// 현재 선택된 날짜 (폼 기본값)
     private var selectedDate: Date { dateFromKey(selectedKey) ?? Date() }
 
@@ -120,7 +124,9 @@ struct DetailPanelView: View {
                     HStack(spacing: 6) {
                         TextField("예: 1.5, 20", text: $amount)
                             .textFieldStyle(.roundedBorder)
+                            .focused($focus, equals: .amount)
                             .onSubmit(submit)
+                            .onKeyPress(.tab) { focus = .desc; return .handled }
                         Text("만원").font(.system(size: 12)).foregroundColor(.secondary)
                     }
                     if let v = parseManInput(amount) {
@@ -131,7 +137,11 @@ struct DetailPanelView: View {
                 }
             }
             field("내용") {
-                TextField("예: 점심 김밥", text: $desc).textFieldStyle(.roundedBorder)
+                TextField("예: 점심 김밥", text: $desc)
+                    .textFieldStyle(.roundedBorder)
+                    .focused($focus, equals: .desc)
+                    .onSubmit(submit)
+                    .onKeyPress(.tab) { focus = .amount; return .handled }
             }
             HStack(spacing: 10) {
                 field("태그") {
@@ -197,6 +207,7 @@ struct DetailPanelView: View {
                          desc: desc.trimmingCharacters(in: .whitespaces),
                          tag: selectedTag, sub: selectedSub, brand: brandToSave))
         clearForm()
+        focus = .amount          // 연속 입력을 위해 금액 칸에 커서 유지
     }
 
     private func startEdit(_ r: Record) {
@@ -207,6 +218,7 @@ struct DetailPanelView: View {
         desc = r.desc
         selectedBrand = r.brand
         formDate = dateFromKey(r.dateKey) ?? selectedDate
+        focus = .amount
     }
 
     private func saveEdit() {
