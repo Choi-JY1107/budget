@@ -118,7 +118,7 @@ struct DetailPanelView: View {
             field("금액 (만원)") {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
-                        TextField("예: 1.5, 20", text: $amount)
+                        TextField("예: 1.5, 20, 8180원", text: $amount)
                             .textFieldStyle(.roundedBorder)
                             .focused($focus, equals: .amount)
                             .onSubmit(submit)

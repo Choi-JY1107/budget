@@ -1,5 +1,7 @@
 import Foundation
 
+// MARK: - 날짜
+
 /// Date → "yyyy-MM-dd" 키 문자열
 func dateKey(_ d: Date) -> String {
     let c = Calendar.current.dateComponents([.year, .month, .day], from: d)
@@ -25,91 +27,103 @@ func shortDate(_ key: String) -> String {
     return "\(p[1])/\(p[2])"
 }
 
-/// 정수 금액 → "1,234원" 형식
-func wonFmt(_ n: Int) -> String {
+// MARK: - 금액 표시
+//
+// 금액은 항상 1원 단위 정수로 보관하고, 표시·입력 변환에 반올림을 하지 않는다.
+// (반올림하면 기록을 수정할 때 금액이 조금씩 달라진다)
+
+/// 정수 금액 → "1,234원"
+func wonFmt(_ n: Int) -> String { commaNum(n) + "원" }
+
+/// 천 단위 쉼표
+private func commaNum(_ n: Int) -> String {
     let f = NumberFormatter()
     f.numberStyle = .decimal
-    return (f.string(from: NSNumber(value: n)) ?? "\(n)") + "원"
+    return f.string(from: NSNumber(value: n)) ?? "\(n)"
 }
 
-/// 금액을 만원 단위 축약으로 표시한다.
-/// 예) 15000→"1.5만원", 200000→"20만원", 3000→"3천원", 500→"500원", 12345→"1.23만원"
+/// 금액을 만원 단위로 표시한다. 보기 좋게 소수점 둘째 자리까지만 표시하며,
+/// 저장되는 값은 언제나 1원 단위 정수 그대로다(표시용 반올림이 값에 영향을 주지 않는다).
+/// 예) 200000→"20만원", 15000→"1.5만원", 52251→"5.23만원", 8180→"8,180원", 1→"1원"
 func shortWon(_ n: Int) -> String {
     if n == 0 { return "0원" }
-    let neg = n < 0
     let a = abs(n)
-    let body: String
-    if a >= 10_000 {
-        body = trimNum(Double(a) / 10_000) + "만원"
-    } else if a >= 1_000 {
-        body = trimNum(Double(a) / 1_000) + "천원"
-    } else {
-        body = "\(a)원"
-    }
-    return neg ? "-" + body : body
+    // 1만원 미만은 만원으로 쓰면 "0.01만원"처럼 되므로 원 단위로 그대로 표시
+    let body = a >= 10_000 ? manRounded2(a) + "만원" : commaNum(a) + "원"
+    return (n < 0 ? "-" : "") + body
 }
 
-/// 소수점 아래 최대 2자리, 뒤따르는 0은 제거 (1.5 → "1.5", 20.0 → "20", 1.23 → "1.23")
-private func trimNum(_ x: Double) -> String {
-    let r = (x * 100).rounded() / 100
-    if r == r.rounded() { return String(Int(r)) }
-    var s = String(format: "%.2f", r)
-    while s.hasSuffix("0") { s.removeLast() }
-    if s.hasSuffix(".") { s.removeLast() }
+/// 표시 전용: 원 금액을 만원 단위 소수점 둘째 자리까지로 반올림한 문자열
+/// (정수 연산으로 계산하며 뒤따르는 0은 제거한다)
+private func manRounded2(_ a: Int) -> String {
+    let hundredths = (a + 50) / 100          // 만원의 1/100 단위로 반올림
+    var s = String(hundredths / 100)
+    let frac = hundredths % 100
+    if frac > 0 {
+        var f = String(format: "%02d", frac)
+        while f.hasSuffix("0") { f.removeLast() }
+        s += "." + f
+    }
     return s
 }
 
-/// 만원 단위로 입력한 값을 금액(원)으로 해석한다.
-/// 예) "1.5"→15000, "20"→200000, "0.3"→3000, "1.5만"→15000
-func parseManInput(_ raw: String) -> Int? {
-    let s = raw.replacingOccurrences(of: ",", with: "")
-               .replacingOccurrences(of: " ", with: "")
-               .replacingOccurrences(of: "만원", with: "")
-               .replacingOccurrences(of: "만", with: "")
-               .replacingOccurrences(of: "원", with: "")
-    if s.isEmpty { return nil }
-    guard let v = Double(s) else { return nil }
-    return Int((v * 10_000).rounded())
-}
+// MARK: - 금액 입력 변환 (만원 단위)
 
-/// 금액(원)을 만원 단위 입력 문자열로 변환 (예: 15000 → "1.5", 200000 → "20")
+/// 금액(원) → 만원 단위 입력 문자열. 정확한 값을 그대로 되돌려준다.
+/// 예) 200000→"20", 15000→"1.5", 8180→"0.818", 1→"0.0001"
 func manString(_ n: Int) -> String {
-    n == 0 ? "" : trimNum(Double(n) / 10_000)
+    if n == 0 { return "" }
+    let a = abs(n)
+    var s = String(a / 10_000)
+    let frac = a % 10_000
+    if frac > 0 {
+        var f = String(format: "%04d", frac)
+        while f.hasSuffix("0") { f.removeLast() }
+        s += "." + f
+    }
+    return (n < 0 ? "-" : "") + s
 }
 
-/// 축약 입력을 금액(정수)으로 해석한다.
-/// 예) "15000"→15000, "1.5만"→15000, "20만"→200000, "3천"→3000,
-///     "만"→10000, "1억"→100000000, "3만5000"→35000, "1,234"→1234
-/// 해석 불가하면 nil.
-func parseAmount(_ raw: String) -> Int? {
+/// 입력 문자열을 금액(원)으로 변환한다. 기본 단위는 만원.
+/// 예) "1.5"→15000, "20"→200000, "0.818"→8180, "0.0001"→1,
+///     "8180원"→8180 (원 단위 직접 입력), "2만"→20000
+/// 부동소수 오차 없이 정수 연산으로 계산하며, 1원 미만은 버린다.
+func parseManInput(_ raw: String) -> Int? {
     var s = raw.replacingOccurrences(of: ",", with: "")
                .replacingOccurrences(of: " ", with: "")
-               .replacingOccurrences(of: "원", with: "")
     if s.isEmpty { return nil }
 
-    // 단위 없는 순수 숫자
-    if let n = Int(s) { return n }
-
-    // 억 → 만 → 천 순서로 누적
-    let units: [(String, Double)] = [("억", 100_000_000), ("만", 10_000), ("천", 1_000)]
-    var total = 0.0
-    var matched = false
-    for (u, mult) in units {
-        guard let range = s.range(of: u) else { continue }
-        let numPart = String(s[s.startIndex..<range.lowerBound])
-        let value = numPart.isEmpty ? 1.0 : Double(numPart)
-        guard let v = value else { return nil }
-        total += v * mult
-        matched = true
-        s = String(s[range.upperBound...])   // 단위 뒤 나머지
+    // "…원"으로 끝나면 원 단위 그대로 (단 "만원"은 만원 단위)
+    if s.hasSuffix("원") && !s.hasSuffix("만원") {
+        s.removeLast()
+        return s.isEmpty ? nil : Int(s)
     }
+    s = s.replacingOccurrences(of: "만원", with: "")
+         .replacingOccurrences(of: "만", with: "")
+    return manToWon(s)
+}
 
-    // 단위 뒤에 남은 숫자 (예: "3만5000"의 "5000")
-    if !s.isEmpty {
-        guard let n = Double(s) else { return nil }
-        total += n
+/// "1.2345" 형태의 만원 값을 원 단위 정수로 정확히 변환
+private func manToWon(_ raw: String) -> Int? {
+    let neg = raw.hasPrefix("-")
+    let body = neg ? String(raw.dropFirst()) : raw
+    if body.isEmpty { return nil }
+
+    let parts = body.split(separator: ".", omittingEmptySubsequences: false)
+    guard parts.count <= 2 else { return nil }
+
+    let wholeText = parts[0].isEmpty ? "0" : String(parts[0])
+    guard wholeText.allSatisfy(\.isNumber), let whole = Int(wholeText) else { return nil }
+    var won = whole * 10_000
+
+    if parts.count == 2 {
+        var frac = String(parts[1])
+        guard frac.allSatisfy(\.isNumber) else { return nil }
+        if frac.isEmpty { frac = "0" }
+        if frac.count > 4 { frac = String(frac.prefix(4)) }   // 1원 미만은 버림
+        while frac.count < 4 { frac += "0" }
+        guard let f = Int(frac) else { return nil }
+        won += f
     }
-
-    guard matched else { return Double(raw).map { Int($0.rounded()) } }
-    return Int(total.rounded())
+    return neg ? -won : won
 }
