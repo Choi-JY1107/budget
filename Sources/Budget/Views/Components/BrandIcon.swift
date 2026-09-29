@@ -55,8 +55,8 @@ struct BrandPicker: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("커피 브랜드").font(.system(size: 11, weight: .semibold)).foregroundColor(.secondary)
-            // 브랜드가 늘어나 한 줄이 좁아지므로 5칸씩 2줄로 배치
-            let cols = Array(repeating: GridItem(.flexible(), spacing: 6), count: 5)
+            // 브랜드가 늘어나 한 줄이 좁아지므로 6칸씩 2줄로 배치
+            let cols = Array(repeating: GridItem(.flexible(), spacing: 6), count: 6)
             LazyVGrid(columns: cols, spacing: 8) {
                 ForEach(COFFEE_BRANDS) { b in
                     Button {

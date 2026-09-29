@@ -3,3 +3,7 @@ build/
 
 # macOS
 .DS_Store
+
+# 개인 지출 기록 및 월별 목표 데이터 (앱 데이터의 복사본 포함)
+**/records.json
+**/budgets.json

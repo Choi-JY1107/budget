@@ -29,6 +29,8 @@ let COFFEE_BRANDS: [CoffeeBrand] = [
                 bg: Color(red: 0.16, green: 0.27, blue: 0.71), fg: .white),
     CoffeeBrand(id: "theventi", name: "더벤티",     short: "벤",
                 bg: Color(red: 0.55, green: 0.24, blue: 0.68), fg: .white),
+    CoffeeBrand(id: "twosome",  name: "투썸플레이스", short: "투",
+                bg: Color(red: 0.91, green: 0.11, blue: 0.16), fg: .white),
     CoffeeBrand(id: "etc",      name: "기타",       short: "?",
                 bg: Color(red: 0.60, green: 0.63, blue: 0.69), fg: .white),
 ]
